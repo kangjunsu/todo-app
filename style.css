@@ -711,3 +711,125 @@ body.auth-page {
         font-size: 13px;
     }
 }
+
+/* 소셜 로그인 스타일 */
+
+/* 구분선 */
+.auth-divider {
+    display: flex;
+    align-items: center;
+    text-align: center;
+    margin: 20px 0;
+    color: #999;
+    font-size: 14px;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+    content: '';
+    flex: 1;
+    border-bottom: 1px solid #E0E0E0;
+}
+
+.auth-divider span {
+    padding: 0 15px;
+}
+
+/* 소셜 로그인 버튼 컨테이너 */
+.social-login-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 20px;
+}
+
+/* 소셜 로그인 버튼 공통 스타일 */
+.social-button {
+    width: 100%;
+    padding: 12px 16px;
+    border: 2px solid #E0E0E0;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    background: white;
+}
+
+.social-button:hover {
+    border-color: #2AC1BC;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(42, 193, 188, 0.2);
+}
+
+.social-button:active {
+    transform: translateY(0);
+}
+
+.social-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Google 버튼 */
+.social-button.google {
+    color: #333;
+}
+
+.social-button.google:hover {
+    background: #F8F9FA;
+    border-color: #DB4437;
+}
+
+/* GitHub 버튼 */
+.social-button.github {
+    color: #333;
+}
+
+.social-button.github:hover {
+    background: #24292E;
+    color: white;
+    border-color: #24292E;
+}
+
+.social-button.github:hover .social-icon {
+    color: white;
+}
+
+/* 소셜 아이콘 */
+.social-icon {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+}
+
+/* 소셜 로그인 반응형 - 모바일 */
+@media (max-width: 480px) {
+    .social-button {
+        padding: 10px 14px;
+        font-size: 14px;
+    }
+
+    .auth-divider {
+        margin: 15px 0;
+        font-size: 13px;
+    }
+
+    .social-icon {
+        width: 18px;
+        height: 18px;
+    }
+}
+
+@media (max-width: 360px) {
+    .social-button {
+        padding: 9px 12px;
+        font-size: 13px;
+        gap: 8px;
+    }
+}

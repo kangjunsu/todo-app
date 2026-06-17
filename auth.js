@@ -60,6 +60,19 @@ const AuthManager = {
     // 인증 상태 확인
     isAuthenticated() {
         return this.currentUser !== null;
+    },
+
+    // 소셜 로그인 (OAuth)
+    async signInWithOAuth(provider) {
+        const { data, error} = await db.auth.signInWithOAuth({
+            provider: provider, // 'google' or 'github'
+            options: {
+                redirectTo: window.location.origin + window.location.pathname,
+                scopes: provider === 'github' ? 'user:email' : undefined
+            }
+        });
+        if (error) throw error;
+        return data;
     }
 };
 
@@ -70,6 +83,10 @@ function getErrorMessage(error) {
         'Email not confirmed': '이메일 인증이 완료되지 않았습니다. 이메일을 확인해주세요.',
         'User already registered': '이미 등록된 이메일입니다.',
         'Password should be at least 6 characters': '비밀번호는 최소 6자 이상이어야 합니다.',
+        'OAuth provider not enabled': 'OAuth 로그인이 활성화되지 않았습니다.',
+        'Invalid OAuth callback': '인증 콜백 처리 중 오류가 발생했습니다.',
+        'User cancelled OAuth': '로그인이 취소되었습니다.',
+        'Email already registered with another provider': '이메일이 다른 방법으로 이미 가입되어 있습니다.',
     };
 
     const message = error?.message || '';
@@ -226,8 +243,58 @@ async function handleSignup(e) {
     }
 }
 
+// Google 로그인
+async function handleGoogleLogin(e) {
+    e.preventDefault();
+    setLoading(e.target, true);
+
+    try {
+        await AuthManager.signInWithOAuth('google');
+        // OAuth 플로우가 시작되면 자동으로 Google 페이지로 리디렉션됨
+        // 인증 후 auth.html로 돌아옴
+    } catch (error) {
+        console.error('Google login error:', error);
+        showError('Google 로그인에 실패했습니다.');
+        setLoading(e.target, false);
+    }
+}
+
+// GitHub 로그인
+async function handleGithubLogin(e) {
+    e.preventDefault();
+    setLoading(e.target, true);
+
+    try {
+        await AuthManager.signInWithOAuth('github');
+        // OAuth 플로우가 시작되면 자동으로 GitHub 페이지로 리디렉션됨
+    } catch (error) {
+        console.error('GitHub login error:', error);
+        showError('GitHub 로그인에 실패했습니다.');
+        setLoading(e.target, false);
+    }
+}
+
 // 페이지 초기화
 (async function initAuthPage() {
+    // OAuth 리디렉션 후 돌아왔는지 확인
+    const hashParams = new URLSearchParams(window.location.hash.substring(1));
+
+    if (hashParams.get('access_token')) {
+        // OAuth 인증 성공 - 세션이 자동으로 설정됨
+        // URL 해시 제거하고 index.html로 이동
+        console.log('OAuth login successful, redirecting to index.html');
+        window.location.href = 'index.html';
+        return;
+    }
+
+    if (hashParams.get('error')) {
+        // OAuth 에러 처리
+        const errorDesc = hashParams.get('error_description') || 'OAuth 인증에 실패했습니다.';
+        showError(decodeURIComponent(errorDesc));
+        // 해시 제거
+        history.replaceState(null, '', window.location.pathname);
+    }
+
     // 이미 로그인된 경우 리디렉션
     const isAuth = await AuthManager.init();
     if (isAuth) {
@@ -238,7 +305,7 @@ async function handleSignup(e) {
     // 탭 설정
     setupTabs();
 
-    // 로그인 폼 이벤트
+    // 이메일 로그인 폼 이벤트
     document.getElementById('login-btn').addEventListener('click', handleLogin);
     document.getElementById('login-form').addEventListener('submit', (e) => {
         e.preventDefault();
@@ -251,6 +318,12 @@ async function handleSignup(e) {
         e.preventDefault();
         handleSignup(e);
     });
+
+    // 소셜 로그인 버튼 이벤트
+    document.getElementById('google-login-btn')?.addEventListener('click', handleGoogleLogin);
+    document.getElementById('github-login-btn')?.addEventListener('click', handleGithubLogin);
+    document.getElementById('google-signup-btn')?.addEventListener('click', handleGoogleLogin);
+    document.getElementById('github-signup-btn')?.addEventListener('click', handleGithubLogin);
 
     // Enter 키 처리
     document.getElementById('login-password').addEventListener('keypress', (e) => {
