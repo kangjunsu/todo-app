@@ -3,18 +3,82 @@ const addBtn = document.getElementById('addBtn');
 const todoList = document.getElementById('todoList');
 const prioritySelect = document.getElementById('prioritySelect');
 
-let todos = [];
+// Supabase 클라이언트 초기화
+const SUPABASE_URL = 'https://gakynwqgyqnljcipchrb.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdha3lud3FneXFubGpjaXBjaHJiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE2NjcyMjYsImV4cCI6MjA5NzI0MzIyNn0.5n96o1YYVwDcV5eOe9EDAKD1KUA0QMORrR3oClVsAEc';
 
-function loadTodos() {
-    const savedTodos = localStorage.getItem('todos');
-    if (savedTodos) {
-        todos = JSON.parse(savedTodos);
-        renderTodos();
+if (!window.supabase) {
+    alert('Supabase 라이브러리 로드 실패. 페이지를 새로고침해주세요.');
+    throw new Error('Supabase not loaded');
+}
+
+const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+let todos = [];
+let currentUser = null;
+
+// 인증 체크
+async function checkAuth() {
+    const { data: { session } } = await db.auth.getSession();
+    if (!session) {
+        window.location.href = 'auth.html';
+        return false;
+    }
+    currentUser = session.user;
+    return true;
+}
+
+// 사용자 정보 표시
+async function renderUserInfo() {
+    const { data: { user } } = await db.auth.getUser();
+    if (user) {
+        const userEmailEl = document.getElementById('userEmail');
+        if (userEmailEl) {
+            userEmailEl.textContent = user.email;
+        }
     }
 }
 
-function saveTodos() {
-    localStorage.setItem('todos', JSON.stringify(todos));
+// 로그아웃
+async function handleLogout() {
+    try {
+        await db.auth.signOut();
+        window.location.href = 'auth.html';
+    } catch (error) {
+        console.error('Logout error:', error);
+        alert('로그아웃에 실패했습니다.');
+    }
+}
+
+async function loadTodos() {
+    try {
+        // 현재 사용자 확인
+        const { data: { user } } = await db.auth.getUser();
+        if (!user) {
+            window.location.href = 'auth.html';
+            return;
+        }
+
+        // 사용자별 TODO 로드
+        const { data, error } = await db
+            .from('todos')
+            .select('*')
+            .eq('user_id', user.id)
+            .order('order', { ascending: true });
+
+        if (error) throw error;
+
+        todos = data || [];
+        renderTodos();
+    } catch (error) {
+        console.error('Error loading todos:', error);
+        alert('할 일 목록을 불러오는데 실패했습니다.');
+    }
+}
+
+async function saveTodos() {
+    // Supabase에서는 개별 작업마다 저장되므로 이 함수는 더 이상 필요 없음
+    // 하위 호환성을 위해 빈 함수로 유지
 }
 
 function renderTodos() {
@@ -34,19 +98,20 @@ function renderTodos() {
         const li = document.createElement('li');
         li.className = `todo-item priority-${todo.priority} ${todo.completed ? 'completed' : ''}`;
         li.setAttribute('draggable', 'true');
+        li.setAttribute('data-id', todo.id);
         li.setAttribute('data-index', todo.originalIndex);
         li.setAttribute('data-priority', todo.priority);
 
         li.innerHTML = `
             <span class="drag-handle">⋮⋮</span>
-            <input type="checkbox" class="todo-checkbox" ${todo.completed ? 'checked' : ''} onchange="toggleTodo(${todo.originalIndex})">
-            <select class="priority-select-item" onchange="changePriority(${todo.originalIndex}, this.value)">
+            <input type="checkbox" class="todo-checkbox" ${todo.completed ? 'checked' : ''} onchange="toggleTodo('${todo.id}')">
+            <select class="priority-select-item" onchange="changePriority('${todo.id}', this.value)">
                 <option value="high" ${todo.priority === 'high' ? 'selected' : ''}>높음</option>
                 <option value="medium" ${todo.priority === 'medium' ? 'selected' : ''}>중간</option>
                 <option value="low" ${todo.priority === 'low' ? 'selected' : ''}>낮음</option>
             </select>
             <span class="todo-text">${todo.text}</span>
-            <button class="delete-btn" onclick="deleteTodo(${todo.originalIndex})">삭제</button>
+            <button class="delete-btn" onclick="deleteTodo('${todo.id}')">삭제</button>
         `;
 
         // 드래그 이벤트 추가
@@ -61,7 +126,7 @@ function renderTodos() {
     });
 }
 
-function addTodo() {
+async function addTodo() {
     const text = todoInput.value.trim();
     const priority = prioritySelect.value;
 
@@ -70,43 +135,99 @@ function addTodo() {
         return;
     }
 
-    todos.push({
-        text: text,
-        priority: priority,
-        completed: false,
-        order: todos.length
-    });
+    try {
+        // 현재 사용자 확인
+        const { data: { user } } = await db.auth.getUser();
+        if (!user) {
+            window.location.href = 'auth.html';
+            return;
+        }
 
-    todoInput.value = '';
-    prioritySelect.value = 'medium';
-    saveTodos();
-    renderTodos();
+        const maxOrder = todos.length > 0 ? Math.max(...todos.map(t => t.order || 0)) : -1;
+
+        const { data, error } = await db
+            .from('todos')
+            .insert([{
+                text: text,
+                priority: priority,
+                completed: false,
+                order: maxOrder + 1,
+                user_id: user.id
+            }])
+            .select();
+
+        if (error) {
+            console.error('Supabase error details:', error);
+            throw error;
+        }
+
+        console.log('Successfully added todo:', data);
+        todoInput.value = '';
+        prioritySelect.value = 'medium';
+        await loadTodos();
+    } catch (error) {
+        console.error('Error adding todo:', error);
+        alert('할 일 추가에 실패했습니다.\n에러: ' + (error.message || JSON.stringify(error)));
+    }
 }
 
-function toggleTodo(index) {
-    todos[index].completed = !todos[index].completed;
-    saveTodos();
-    renderTodos();
+async function toggleTodo(id) {
+    try {
+        const todo = todos.find(t => t.id === id);
+        if (!todo) return;
+
+        const { error } = await db
+            .from('todos')
+            .update({ completed: !todo.completed })
+            .eq('id', id);
+
+        if (error) throw error;
+
+        await loadTodos();
+    } catch (error) {
+        console.error('Error toggling todo:', error);
+        alert('할 일 상태 변경에 실패했습니다.');
+    }
 }
 
-function deleteTodo(index) {
-    todos.splice(index, 1);
-    saveTodos();
-    renderTodos();
+async function deleteTodo(id) {
+    try {
+        const { error } = await db
+            .from('todos')
+            .delete()
+            .eq('id', id);
+
+        if (error) throw error;
+
+        await loadTodos();
+    } catch (error) {
+        console.error('Error deleting todo:', error);
+        alert('할 일 삭제에 실패했습니다.');
+    }
 }
 
-function changePriority(index, newPriority) {
-    todos[index].priority = newPriority;
-    saveTodos();
-    renderTodos();
+async function changePriority(id, newPriority) {
+    try {
+        const { error } = await db
+            .from('todos')
+            .update({ priority: newPriority })
+            .eq('id', id);
+
+        if (error) throw error;
+
+        await loadTodos();
+    } catch (error) {
+        console.error('Error changing priority:', error);
+        alert('우선순위 변경에 실패했습니다.');
+    }
 }
 
 let draggedElement = null;
-let draggedIndex = null;
+let draggedId = null;
 
 function handleDragStart(e) {
     draggedElement = this;
-    draggedIndex = parseInt(this.getAttribute('data-index'));
+    draggedId = this.getAttribute('data-id');
     this.classList.add('dragging');
     e.dataTransfer.effectAllowed = 'move';
 }
@@ -133,33 +254,42 @@ function handleDragLeave(e) {
     this.classList.remove('drag-over');
 }
 
-function handleDrop(e) {
+async function handleDrop(e) {
     if (e.stopPropagation) {
         e.stopPropagation();
     }
 
-    const targetIndex = parseInt(this.getAttribute('data-index'));
+    const targetId = this.getAttribute('data-id');
     const draggedPriority = draggedElement.getAttribute('data-priority');
     const targetPriority = this.getAttribute('data-priority');
 
     // 같은 우선순위끼리만 위치 변경
-    if (draggedPriority === targetPriority && draggedIndex !== targetIndex) {
-        // 두 항목의 order 값을 교환
-        if (!todos[draggedIndex].order) {
-            todos.forEach((todo, idx) => {
-                todo.order = idx;
-            });
+    if (draggedPriority === targetPriority && draggedId !== targetId) {
+        try {
+            const draggedTodo = todos.find(t => t.id === draggedId);
+            const targetTodo = todos.find(t => t.id === targetId);
+
+            if (draggedTodo && targetTodo) {
+                const draggedOrder = draggedTodo.order;
+                const targetOrder = targetTodo.order;
+
+                // 두 항목의 order 값을 교환
+                await db
+                    .from('todos')
+                    .update({ order: targetOrder })
+                    .eq('id', draggedId);
+
+                await db
+                    .from('todos')
+                    .update({ order: draggedOrder })
+                    .eq('id', targetId);
+
+                await loadTodos();
+            }
+        } catch (error) {
+            console.error('Error reordering todos:', error);
+            alert('순서 변경에 실패했습니다.');
         }
-
-        const draggedOrder = todos[draggedIndex].order;
-        todos[draggedIndex].order = todos[targetIndex].order;
-        todos[targetIndex].order = draggedOrder;
-
-        // order 값으로 정렬
-        todos.sort((a, b) => (a.order || 0) - (b.order || 0));
-
-        saveTodos();
-        renderTodos();
     }
 
     this.classList.remove('drag-over');
@@ -174,6 +304,7 @@ function handleDragEnd(e) {
     });
 }
 
+// 이벤트 리스너
 addBtn.addEventListener('click', addTodo);
 
 todoInput.addEventListener('keypress', (e) => {
@@ -182,4 +313,28 @@ todoInput.addEventListener('keypress', (e) => {
     }
 });
 
-loadTodos();
+// 로그아웃 버튼
+const logoutBtn = document.getElementById('logoutBtn');
+if (logoutBtn) {
+    logoutBtn.addEventListener('click', handleLogout);
+}
+
+// 앱 초기화
+(async function initApp() {
+    // 인증 체크
+    const isAuth = await checkAuth();
+    if (!isAuth) return;
+
+    // 인증 상태 변경 리스너
+    db.auth.onAuthStateChange((event, session) => {
+        if (event === 'SIGNED_OUT') {
+            window.location.href = 'auth.html';
+        }
+    });
+
+    // 사용자 정보 표시
+    await renderUserInfo();
+
+    // TODO 로드
+    await loadTodos();
+})();
