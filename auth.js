@@ -281,9 +281,20 @@ async function handleGithubLogin(e) {
 
     if (hashParams.get('access_token')) {
         // OAuth 인증 성공 - 세션이 자동으로 설정됨
-        // URL 해시 제거하고 index.html로 이동
-        console.log('OAuth login successful, redirecting to index.html');
-        window.location.href = 'index.html';
+        console.log('OAuth login successful, waiting for session...');
+
+        // Supabase가 세션을 설정할 때까지 잠시 대기
+        await new Promise(resolve => setTimeout(resolve, 100));
+
+        // 세션 확인
+        const { data: { session } } = await db.auth.getSession();
+        if (session) {
+            console.log('Session confirmed, redirecting to index.html');
+            window.location.href = 'index.html';
+        } else {
+            console.error('Session not created after OAuth');
+            showError('로그인 처리 중 오류가 발생했습니다. 다시 시도해주세요.');
+        }
         return;
     }
 
