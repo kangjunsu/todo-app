@@ -1,0 +1,835 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Arial', 'Malgun Gothic', sans-serif;
+    background: #2AC1BC;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+.container {
+    background: white;
+    border-radius: 20px;
+    padding: 40px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    width: 100%;
+    max-width: 500px;
+}
+
+h1 {
+    text-align: center;
+    color: #2AC1BC;
+    margin-bottom: 30px;
+    font-size: 2.2rem;
+    font-weight: bold;
+    letter-spacing: -1px;
+}
+
+.input-container {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 25px;
+    align-items: stretch;
+}
+
+#todoInput {
+    flex: 1;
+    padding: 15px 18px;
+    border: 3px solid #2AC1BC;
+    border-radius: 12px;
+    font-size: 16px;
+    outline: none;
+    transition: all 0.3s;
+    font-weight: 500;
+}
+
+#todoInput:focus {
+    border-color: #1FA19D;
+    box-shadow: 0 0 0 3px rgba(42, 193, 188, 0.1);
+}
+
+#todoInput::placeholder {
+    color: #999;
+}
+
+#prioritySelect {
+    padding: 15px 12px;
+    border: 3px solid #2AC1BC;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: bold;
+    background: white;
+    cursor: pointer;
+    outline: none;
+    color: #333;
+    transition: all 0.3s;
+}
+
+#prioritySelect:hover {
+    border-color: #1FA19D;
+}
+
+#prioritySelect:focus {
+    border-color: #1FA19D;
+    box-shadow: 0 0 0 3px rgba(42, 193, 188, 0.1);
+}
+
+#addBtn {
+    padding: 15px 30px;
+    background: #2AC1BC;
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 17px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s;
+    white-space: nowrap;
+}
+
+#addBtn:hover {
+    background: #1FA19D;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(42, 193, 188, 0.3);
+}
+
+#addBtn:active {
+    transform: translateY(0);
+}
+
+#todoList {
+    list-style: none;
+}
+
+.todo-item {
+    display: flex;
+    align-items: center;
+    padding: 18px;
+    background: #FFF9F0;
+    border-radius: 15px;
+    margin-bottom: 12px;
+    transition: all 0.3s;
+    border: 2px solid #FFE4B5;
+    cursor: grab;
+}
+
+.todo-item:active {
+    cursor: grabbing;
+}
+
+.todo-item.dragging {
+    opacity: 0.5;
+    cursor: grabbing;
+}
+
+.todo-item.drag-over {
+    border: 3px dashed #2AC1BC;
+    transform: scale(1.02);
+}
+
+.todo-item:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 15px rgba(42, 193, 188, 0.2);
+    border-color: #2AC1BC;
+}
+
+.todo-item.completed {
+    background: #F0F0F0;
+    border-color: #D0D0D0;
+    opacity: 0.7;
+}
+
+.todo-item.completed .todo-text {
+    text-decoration: line-through;
+    color: #999;
+}
+
+.todo-item.priority-high {
+    background: #FFE5E5;
+    border-color: #FF6B6B;
+}
+
+.todo-item.priority-high:hover {
+    border-color: #FF5252;
+}
+
+.todo-item.priority-medium {
+    background: #FFF9E5;
+    border-color: #FFD93D;
+}
+
+.todo-item.priority-medium:hover {
+    border-color: #FFC700;
+}
+
+.todo-item.priority-low {
+    background: #E5F5FF;
+    border-color: #6BCBFF;
+}
+
+.todo-item.priority-low:hover {
+    border-color: #3BB4FF;
+}
+
+.priority-select-item {
+    padding: 6px 10px;
+    border: 2px solid #2AC1BC;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: bold;
+    background: white;
+    cursor: pointer;
+    outline: none;
+    color: #333;
+    margin-right: 12px;
+    transition: all 0.3s;
+}
+
+.priority-select-item:hover {
+    border-color: #1FA19D;
+    transform: scale(1.05);
+}
+
+.priority-select-item:focus {
+    border-color: #1FA19D;
+    box-shadow: 0 0 0 2px rgba(42, 193, 188, 0.2);
+}
+
+.priority-high .priority-select-item {
+    border-color: #FF6B6B;
+    color: #FF6B6B;
+}
+
+.priority-medium .priority-select-item {
+    border-color: #FFD93D;
+    color: #D4A500;
+}
+
+.priority-low .priority-select-item {
+    border-color: #6BCBFF;
+    color: #3BB4FF;
+}
+
+.drag-handle {
+    font-size: 20px;
+    color: #999;
+    margin-right: 10px;
+    cursor: grab;
+    user-select: none;
+    line-height: 1;
+}
+
+.todo-item:active .drag-handle {
+    cursor: grabbing;
+}
+
+.todo-checkbox {
+    width: 24px;
+    height: 24px;
+    margin-right: 15px;
+    cursor: pointer;
+    accent-color: #2AC1BC;
+}
+
+.todo-text {
+    flex: 1;
+    font-size: 17px;
+    color: #333;
+    font-weight: 500;
+}
+
+.delete-btn {
+    padding: 10px 18px;
+    background: #FF6B6B;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-size: 15px;
+    font-weight: bold;
+}
+
+.delete-btn:hover {
+    background: #FF5252;
+    transform: scale(1.05);
+}
+
+.delete-btn:active {
+    transform: scale(0.95);
+}
+
+.empty-message {
+    text-align: center;
+    color: #2AC1BC;
+    padding: 40px 30px;
+    font-size: 17px;
+    font-weight: 500;
+    background: #F0FFFE;
+    border-radius: 15px;
+    border: 2px dashed #2AC1BC;
+}
+
+/* 반응형 디자인 */
+
+/* 태블릿 (768px 이하) */
+@media (max-width: 768px) {
+    body {
+        padding: 15px;
+    }
+
+    .container {
+        padding: 25px;
+    }
+
+    h1 {
+        font-size: 1.8rem;
+        margin-bottom: 25px;
+    }
+
+    .input-container {
+        flex-wrap: wrap;
+    }
+
+    #todoInput {
+        width: 100%;
+        order: 1;
+    }
+
+    #prioritySelect {
+        order: 2;
+        flex: 1;
+        min-width: 100px;
+    }
+
+    #addBtn {
+        order: 3;
+        flex: 1;
+        min-width: 100px;
+    }
+
+    .todo-item {
+        padding: 15px;
+        flex-wrap: wrap;
+    }
+
+    .todo-text {
+        font-size: 15px;
+        flex: 1 1 100%;
+        margin-top: 8px;
+        order: 4;
+    }
+
+    .drag-handle {
+        order: 1;
+    }
+
+    .todo-checkbox {
+        order: 2;
+    }
+
+    .priority-select-item {
+        order: 3;
+        margin-right: 8px;
+        font-size: 12px;
+        padding: 5px 8px;
+    }
+
+    .delete-btn {
+        order: 5;
+        margin-top: 8px;
+        width: 100%;
+        padding: 10px;
+    }
+}
+
+/* 모바일 (480px 이하) */
+@media (max-width: 480px) {
+    body {
+        padding: 10px;
+    }
+
+    .container {
+        padding: 20px;
+        border-radius: 15px;
+    }
+
+    h1 {
+        font-size: 1.5rem;
+        margin-bottom: 20px;
+    }
+
+    .input-container {
+        gap: 8px;
+    }
+
+    #todoInput {
+        padding: 12px 15px;
+        font-size: 15px;
+        margin-bottom: 8px;
+    }
+
+    #prioritySelect {
+        padding: 12px 10px;
+        font-size: 15px;
+    }
+
+    #addBtn {
+        padding: 12px 20px;
+        font-size: 16px;
+    }
+
+    .todo-item {
+        padding: 12px;
+        margin-bottom: 10px;
+    }
+
+    .drag-handle {
+        font-size: 18px;
+        margin-right: 8px;
+    }
+
+    .todo-checkbox {
+        width: 20px;
+        height: 20px;
+        margin-right: 10px;
+    }
+
+    .priority-select-item {
+        font-size: 11px;
+        padding: 4px 6px;
+    }
+
+    .todo-text {
+        font-size: 14px;
+        margin-top: 10px;
+        padding: 8px 0;
+    }
+
+    .delete-btn {
+        font-size: 14px;
+        padding: 8px;
+        margin-top: 10px;
+    }
+
+    .empty-message {
+        padding: 30px 20px;
+        font-size: 15px;
+    }
+}
+
+/* 작은 모바일 (360px 이하) */
+@media (max-width: 360px) {
+    .container {
+        padding: 15px;
+    }
+
+    h1 {
+        font-size: 1.3rem;
+    }
+
+    #todoInput {
+        padding: 10px 12px;
+        font-size: 14px;
+    }
+
+    #prioritySelect {
+        padding: 10px 8px;
+        font-size: 14px;
+    }
+
+    #addBtn {
+        padding: 10px 15px;
+        font-size: 15px;
+    }
+
+    .todo-item {
+        padding: 10px;
+    }
+
+    .drag-handle {
+        font-size: 16px;
+        margin-right: 6px;
+    }
+
+    .todo-text {
+        font-size: 13px;
+    }
+
+    .delete-btn {
+        font-size: 13px;
+    }
+}
+
+/* 인증 페이지 스타일 */
+
+body.auth-page {
+    /* auth 페이지는 기본 body 스타일을 그대로 사용 */
+}
+
+.auth-container {
+    /* 더 이상 사용하지 않음 */
+    background: #2AC1BC;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+.auth-card {
+    background: white;
+    border-radius: 20px;
+    padding: 40px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    width: 100%;
+    max-width: 450px;
+}
+
+.auth-title {
+    text-align: center;
+    color: #2AC1BC;
+    margin-bottom: 30px;
+    font-size: 2.2rem;
+    font-weight: bold;
+}
+
+.auth-tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 30px;
+    border-bottom: 2px solid #E0E0E0;
+}
+
+.auth-tab {
+    flex: 1;
+    padding: 12px 20px;
+    background: none;
+    border: none;
+    border-bottom: 3px solid transparent;
+    font-size: 16px;
+    font-weight: bold;
+    color: #999;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.auth-tab.active {
+    color: #2AC1BC;
+    border-bottom-color: #2AC1BC;
+}
+
+.auth-tab:hover {
+    color: #2AC1BC;
+}
+
+.auth-form {
+    display: none;
+}
+
+.auth-form.active {
+    display: block;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: bold;
+    color: #333;
+    font-size: 14px;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 14px 16px;
+    border: 2px solid #E0E0E0;
+    border-radius: 10px;
+    font-size: 15px;
+    outline: none;
+    transition: all 0.3s;
+}
+
+.form-group input:focus {
+    border-color: #2AC1BC;
+    box-shadow: 0 0 0 3px rgba(42, 193, 188, 0.1);
+}
+
+.form-group input::placeholder {
+    color: #AAA;
+}
+
+.auth-button {
+    width: 100%;
+    padding: 15px;
+    background: #2AC1BC;
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 17px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s;
+    margin-top: 10px;
+}
+
+.auth-button:hover {
+    background: #1FA19D;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(42, 193, 188, 0.3);
+}
+
+.auth-button:active {
+    transform: translateY(0);
+}
+
+.auth-button:disabled {
+    background: #CCC;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.auth-error {
+    margin-top: 20px;
+    padding: 12px 16px;
+    background: #FFE5E5;
+    border: 2px solid #FF6B6B;
+    border-radius: 10px;
+    color: #D32F2F;
+    font-size: 14px;
+    font-weight: 500;
+    text-align: center;
+}
+
+.auth-error.hidden {
+    display: none;
+}
+
+/* 헤더 사용자 정보 */
+
+.header-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid #E0E0E0;
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.user-email {
+    font-size: 14px;
+    color: #666;
+    font-weight: 500;
+}
+
+.logout-btn {
+    padding: 8px 16px;
+    background: #FF6B6B;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.logout-btn:hover {
+    background: #FF5252;
+    transform: translateY(-1px);
+}
+
+.logout-btn:active {
+    transform: translateY(0);
+}
+
+/* 인증 페이지 반응형 */
+
+@media (max-width: 480px) {
+    .auth-card {
+        padding: 25px;
+    }
+
+    .auth-title {
+        font-size: 1.8rem;
+        margin-bottom: 25px;
+    }
+
+    .auth-tab {
+        padding: 10px 15px;
+        font-size: 15px;
+    }
+
+    .form-group input {
+        padding: 12px 14px;
+        font-size: 14px;
+    }
+
+    .auth-button {
+        padding: 13px;
+        font-size: 16px;
+    }
+
+    .header-info {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    .logout-btn {
+        width: 100%;
+    }
+}
+
+@media (max-width: 360px) {
+    .auth-card {
+        padding: 20px;
+    }
+
+    .auth-title {
+        font-size: 1.5rem;
+    }
+
+    .form-group input {
+        padding: 10px 12px;
+        font-size: 13px;
+    }
+}
+
+/* 소셜 로그인 스타일 */
+
+/* 구분선 */
+.auth-divider {
+    display: flex;
+    align-items: center;
+    text-align: center;
+    margin: 20px 0;
+    color: #999;
+    font-size: 14px;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+    content: '';
+    flex: 1;
+    border-bottom: 1px solid #E0E0E0;
+}
+
+.auth-divider span {
+    padding: 0 15px;
+}
+
+/* 소셜 로그인 버튼 컨테이너 */
+.social-login-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 20px;
+}
+
+/* 소셜 로그인 버튼 공통 스타일 */
+.social-button {
+    width: 100%;
+    padding: 12px 16px;
+    border: 2px solid #E0E0E0;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    background: white;
+}
+
+.social-button:hover {
+    border-color: #2AC1BC;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(42, 193, 188, 0.2);
+}
+
+.social-button:active {
+    transform: translateY(0);
+}
+
+.social-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Google 버튼 */
+.social-button.google {
+    color: #333;
+}
+
+.social-button.google:hover {
+    background: #F8F9FA;
+    border-color: #DB4437;
+}
+
+/* GitHub 버튼 */
+.social-button.github {
+    color: #333;
+}
+
+.social-button.github:hover {
+    background: #24292E;
+    color: white;
+    border-color: #24292E;
+}
+
+.social-button.github:hover .social-icon {
+    color: white;
+}
+
+/* 소셜 아이콘 */
+.social-icon {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+}
+
+/* 소셜 로그인 반응형 - 모바일 */
+@media (max-width: 480px) {
+    .social-button {
+        padding: 10px 14px;
+        font-size: 14px;
+    }
+
+    .auth-divider {
+        margin: 15px 0;
+        font-size: 13px;
+    }
+
+    .social-icon {
+        width: 18px;
+        height: 18px;
+    }
+}
+
+@media (max-width: 360px) {
+    .social-button {
+        padding: 9px 12px;
+        font-size: 13px;
+        gap: 8px;
+    }
+}

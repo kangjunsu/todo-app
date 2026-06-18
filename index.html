@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>오늘 할 일</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <!-- 사용자 정보 헤더 -->
+        <div class="header-info">
+            <h1 style="margin: 0;">오늘 할 일</h1>
+            <div class="user-info">
+                <span class="user-email" id="userEmail"></span>
+                <button class="logout-btn" id="logoutBtn">로그아웃</button>
+            </div>
+        </div>
+
+        <div class="input-container">
+            <input type="text" id="todoInput" placeholder="할 일을 입력하세요...">
+            <select id="prioritySelect">
+                <option value="high">높음</option>
+                <option value="medium" selected>중간</option>
+                <option value="low">낮음</option>
+            </select>
+            <button id="addBtn">추가</button>
+        </div>
+        <ul id="todoList"></ul>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="script.js?v=5"></script>
+</body>
+</html>
